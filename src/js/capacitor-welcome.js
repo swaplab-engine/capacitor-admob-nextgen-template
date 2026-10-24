@@ -43,7 +43,7 @@ window.customElements.define(
           }
 
           .scroll-area {
-            flex: 1; 
+            flex: 1;
             overflow-y: auto;
             padding: 10px;
             display: grid;
@@ -92,7 +92,7 @@ window.customElements.define(
           }
 
           .terminal-wrapper {
-            height: 32vh; 
+            height: 32vh;
             background-color: #222428;
             display: flex; flex-direction: column;
             border-top: 2px solid #111;
@@ -224,6 +224,35 @@ window.customElements.define(
               <div class="btn-row">
                 <button class="btn btn-load ad-action" id="btn-appopen-load" disabled>Load</button>
                 <button class="btn btn-show ad-action" id="btn-appopen-show" disabled>Show</button>
+              </div>
+            </div>
+
+            <div class="section full-width" style="border: 1px solid #ff9800;">
+              <h3 class="section-title" style="color: #ff9800;">7b. Picture-in-Picture (PiP) Beta</h3>
+              <div class="controls">
+                <label>Pos: 
+                  <select id="pip-pos">
+                    <option value="DEFAULT">DEFAULT</option>
+                    <option value="TOP_LEFT">TOP LEFT</option>
+                    <option value="TOP_RIGHT">TOP RIGHT</option>
+                    <option value="BOTTOM_LEFT">BOTTOM LEFT</option>
+                    <option value="BOTTOM_RIGHT">BOTTOM RIGHT</option>
+                  </select>
+                </label>
+                <label>Scope: 
+                  <select id="pip-scope">
+                    <option value="SCREEN">SCREEN</option>
+                    <option value="APPLICATION">APPLICATION</option>
+                  </select>
+                </label>
+              </div>
+              <div class="btn-row" style="margin-bottom: 6px;">
+                <button class="btn btn-load ad-action" id="btn-pip-load" disabled>Load PiP</button>
+                <button class="btn btn-show ad-action" id="btn-pip-show" disabled>Show PiP</button>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-alt ad-action" id="btn-pip-hide" disabled>Hide</button>
+                <button class="btn btn-alt ad-action" id="btn-pip-destroy" disabled>Destroy</button>
               </div>
             </div>
 
@@ -632,6 +661,35 @@ window.customElements.define(
       getById('btn-appopen-show').addEventListener('click', () => AdMobNextGen.showAppOpen());
 
       // ==========================================
+      // PICTURE-IN-PICTURE (BETA)
+      // ==========================================
+      getById('btn-pip-load').addEventListener('click', async () => {
+        try {
+          const pos = getById('pip-pos').value;
+          const scope = getById('pip-scope').value;
+          this.logToTerminal(`Loading PiP [Pos:${pos}, Scope:${scope}]...`, 'SYS');
+          await AdMobNextGen.loadPictureInPicture({ 
+            adUnitId: 'ca-app-pub-3940256099942544/9657123429', // Official Google Testing ID
+            position: pos,
+            presentationScope: scope,
+            isAutoShow: false
+          });
+        } catch (error) { this.logToTerminal(`PiP Load Error: ${error}`, 'ERROR'); }
+      });
+
+      getById('btn-pip-show').addEventListener('click', () => AdMobNextGen.showPictureInPicture());
+      
+      getById('btn-pip-hide').addEventListener('click', () => {
+        AdMobNextGen.hidePictureInPicture();
+        this.logToTerminal('PiP Hidden.', 'SYS');
+      });
+
+      getById('btn-pip-destroy').addEventListener('click', () => {
+        AdMobNextGen.destroyPictureInPicture();
+        this.logToTerminal('PiP Destroyed.', 'SYS');
+      });
+
+      // ==========================================
       // 7. APP OPEN (NEXT-GEN PRELOAD)
       // ==========================================
       getById('btn-preload-start').addEventListener('click', async () => {
@@ -768,6 +826,19 @@ window.customElements.define(
       ['onAppOpenAdLoaded', 'onAppOpenAdFailedToLoad', 'onAppOpenAdShowed', 'onAppOpenAdDismissed', 'onAppOpenAdPaid'].forEach(e => bindEvent(e));
       // Native Ads Events
       ['onNativeAdLoaded', 'onNativeAdFailedToLoad', 'onNativeAdShowed', 'onNativeAdDismissed', 'onNativeAdFailedToShow', 'onNativeAdImpression', 'onNativeAdClicked', 'onNativeAdPaid'].forEach(e => bindEvent(e));
+      // PiP Events
+      [
+        'onPipAdLoaded', 
+        'onPipAdFailedToLoad', 
+        'onPipAdShown', 
+        'onPipAdHidden', 
+        'onPipAdImpression', 
+        'onPipAdClicked', 
+        'onPipAdShowed', 
+        'onPipAdDismissed', 
+        'onPipAdFailedToShow', 
+        'onPipAdPaid'
+      ].forEach(e => bindEvent(e));
 
       // Preloader Exclusive Event: The only event strictly unique to the Preloader is the exhausted event. 
       // This fires when the buffer pool is completely empty and the SDK stops trying to fetch new ads.
